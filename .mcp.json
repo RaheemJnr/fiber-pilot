@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "fiber-pilot": {
+      "command": "node",
+      "args": ["dist/index.js"],
+      "env": {
+        "FIBER_RPC_URL": "http://127.0.0.1:8227",
+        "FP_MAX_CHANNEL_OPEN": "10000",
+        "FP_MAX_PAYMENT": "5000",
+        "FP_DAILY_LIMIT": "50000",
+        "FP_APPROVAL_THRESHOLD": "5000",
+        "FP_AUTO_REBALANCE": "true",
+        "FP_MAX_REBALANCE": "3000"
+      }
+    }
+  }
+}
