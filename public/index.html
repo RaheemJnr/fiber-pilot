@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>fiber-pilot</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app">
+    <header id="status-bar">
+      <div class="logo">
+        <span class="logo-icon">&#x26A1;</span>
+        <span class="logo-text">fiber-pilot</span>
+      </div>
+      <div id="node-status" class="node-status">
+        <span class="status-dot disconnected" id="status-dot"></span>
+        <span id="node-info">Connecting...</span>
+      </div>
+    </header>
+
+    <main id="chat-messages" class="chat-messages">
+      <div class="welcome-message">
+        <h2>&#x26A1; Welcome to fiber-pilot</h2>
+        <p>Your Fiber node on autopilot. Ask me anything about your node, channels, or payments.</p>
+        <div class="suggestions">
+          <button class="suggestion" onclick="sendSuggestion(this)">How's my Fiber node doing?</button>
+          <button class="suggestion" onclick="sendSuggestion(this)">Analyze my channels</button>
+          <button class="suggestion" onclick="sendSuggestion(this)">Suggest fee optimizations</button>
+          <button class="suggestion" onclick="sendSuggestion(this)">Show my safety config</button>
+        </div>
+      </div>
+    </main>
+
+    <footer class="chat-input-area">
+      <form id="chat-form" onsubmit="handleSubmit(event)">
+        <input type="text" id="chat-input" placeholder="Ask about your Fiber node..." autocomplete="off" autofocus>
+        <button type="submit" id="send-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+          </svg>
+        </button>
+      </form>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
