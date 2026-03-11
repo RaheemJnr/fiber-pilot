@@ -4,6 +4,8 @@ import { FiberRpcClient } from "../fiber-rpc.js";
 import { SafetyLayer } from "../safety.js";
 import { AuditLog } from "../audit.js";
 
+const SHANNONS_PER_CKB = 100_000_000;
+
 export function registerChannelTools(
   server: McpServer,
   rpc: FiberRpcClient,
@@ -63,7 +65,8 @@ export function registerChannelTools(
         };
       }
 
-      const amountCheck = safety.checkChannelOpen(funding_amount);
+      const amountCkb = funding_amount / SHANNONS_PER_CKB;
+      const amountCheck = safety.checkChannelOpen(amountCkb);
       if (!amountCheck.allowed) {
         return {
           content: [
@@ -72,7 +75,8 @@ export function registerChannelTools(
               text: JSON.stringify({
                 status: "approval_required",
                 action: "open_channel",
-                amount: funding_amount,
+                amount_shannons: funding_amount,
+                amount_ckb: amountCkb,
                 reason: amountCheck.reason,
               }),
             },
@@ -81,19 +85,19 @@ export function registerChannelTools(
       }
 
       const params: Record<string, unknown> = {
-        peer_id,
+        pubkey: peer_id,
         funding_amount: `0x${funding_amount.toString(16)}`,
       };
       if (isPublic !== undefined) params.public = isPublic;
 
       const result = await rpc.call("open_channel", [params]);
 
-      safety.recordSpend(funding_amount);
+      safety.recordSpend(amountCkb);
       audit.record({
         tool: "fp_open_channel",
-        params: { peer_id, funding_amount },
+        params: { peer_id, funding_amount, amount_ckb: amountCkb },
         result: "success",
-        detail: `Opened channel with ${funding_amount} CKB to peer ${peer_id}`,
+        detail: `Opened channel with ${amountCkb} CKB (${funding_amount} shannons) to peer ${peer_id}`,
       });
 
       return {

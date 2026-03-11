@@ -1,8 +1,11 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { randomBytes } from "node:crypto";
 import { z } from "zod";
 import { FiberRpcClient } from "../fiber-rpc.js";
 import { SafetyLayer } from "../safety.js";
 import { AuditLog } from "../audit.js";
+
+const SHANNONS_PER_CKB = 100_000_000;
 
 export function registerPaymentTools(
   server: McpServer,
@@ -25,7 +28,8 @@ export function registerPaymentTools(
     },
     async ({ invoice, target_pubkey, amount, timeout }) => {
       if (amount) {
-        const check = safety.checkPayment(amount);
+        const amountCkb = amount / SHANNONS_PER_CKB;
+        const check = safety.checkPayment(amountCkb);
         if (!check.allowed) {
           return {
             content: [
@@ -34,7 +38,8 @@ export function registerPaymentTools(
                 text: JSON.stringify({
                   status: "approval_required",
                   action: "send_payment",
-                  amount,
+                  amount_shannons: amount,
+                  amount_ckb: amountCkb,
                   reason: check.reason,
                 }),
               },
@@ -51,12 +56,12 @@ export function registerPaymentTools(
 
       const result = await rpc.call("send_payment", [params]);
 
-      if (amount) safety.recordSpend(amount);
+      if (amount) safety.recordSpend(amount / SHANNONS_PER_CKB);
       audit.record({
         tool: "fp_send_payment",
-        params: { invoice: invoice ? "[redacted]" : undefined, target_pubkey, amount },
+        params: { invoice: invoice ? "[redacted]" : undefined, target_pubkey, amount, amount_ckb: amount ? amount / SHANNONS_PER_CKB : undefined },
         result: "success",
-        detail: `Sent payment${amount ? ` of ${amount} shannons` : ""}`,
+        detail: `Sent payment${amount ? ` of ${amount / SHANNONS_PER_CKB} CKB (${amount} shannons)` : ""}`,
       });
 
       return {
@@ -79,12 +84,14 @@ export function registerPaymentTools(
       },
     },
     async ({ amount, description, expiry, currency }) => {
+      const preimage = `0x${randomBytes(32).toString("hex")}`;
       const params: Record<string, unknown> = {
         amount: `0x${amount.toString(16)}`,
+        payment_preimage: preimage,
+        currency: currency || "Fibt",
       };
       if (description) params.description = description;
       if (expiry) params.expiry = `0x${expiry.toString(16)}`;
-      if (currency) params.currency = currency;
 
       const result = await rpc.call("new_invoice", [params]);
 
