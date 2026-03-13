@@ -13,11 +13,93 @@
         <span class="logo-icon">&#x26A1;</span>
         <span class="logo-text">fiber-pilot</span>
       </div>
-      <div id="node-status" class="node-status">
-        <span class="status-dot disconnected" id="status-dot"></span>
-        <span id="node-info">Connecting...</span>
+      <div style="display:flex;align-items:center;gap:16px;">
+        <div id="node-status" class="node-status">
+          <span class="status-dot disconnected" id="status-dot"></span>
+          <span id="node-info">Connecting...</span>
+        </div>
+        <button class="docs-btn" onclick="toggleDocs()">Setup Guide</button>
       </div>
     </header>
+
+    <!-- Setup Docs Modal -->
+    <div id="docs-overlay" class="docs-overlay" onclick="closeDocs(event)">
+      <div class="docs-modal">
+        <div class="docs-header">
+          <span>&#x26A1; fiber-pilot Setup Guide</span>
+          <button class="docs-close" onclick="toggleDocs()">&#x2715;</button>
+        </div>
+        <div class="docs-body">
+
+          <div class="docs-section">
+            <h3>Prerequisites</h3>
+            <ul>
+              <li>Node.js 20+ (for <code>--env-file</code> flag support)</li>
+              <li>A running CKB node pointed at testnet</li>
+              <li>Fiber Network node binary <code>fnn</code> v0.7.1+</li>
+              <li>An Anthropic API key with credits</li>
+            </ul>
+          </div>
+
+          <div class="docs-section">
+            <h3>1. Clone &amp; Install</h3>
+            <pre>git clone https://github.com/RaheemJnr/fiber-pilot
+cd fiber-pilot
+npm install
+npm run build</pre>
+          </div>
+
+          <div class="docs-section">
+            <h3>2. Anthropic API Key</h3>
+            <p>You need a <strong>proper API key</strong>, not the Claude Code OAuth token.</p>
+            <ol>
+              <li>Go to <strong>console.anthropic.com → Settings → API Keys</strong></li>
+              <li>Click <strong>Create Key</strong> — the key starts with <code>sk-ant-api03-</code></li>
+              <li>Add billing credits at <strong>Settings → Billing</strong> (even $5 works for demos)</li>
+            </ol>
+            <p class="docs-warn">&#x26A0; The token Claude Code uses (<code>sk-ant-oat01-...</code>) is an OAuth token — it won't work here.</p>
+          </div>
+
+          <div class="docs-section">
+            <h3>3. Configure .env</h3>
+            <pre>ANTHROPIC_API_KEY=sk-ant-api03-YOUR_KEY_HERE
+FIBER_RPC_URL=http://127.0.0.1:8227
+PORT=3000</pre>
+            <p>This file is in <code>.gitignore</code> — your key stays local.</p>
+          </div>
+
+          <div class="docs-section">
+            <h3>4. Start the Fiber Node</h3>
+            <p>Always run from inside your fiber-node directory with <code>-d .</code> so Fiber uses the local key file (not <code>~/.fiber-node</code>):</p>
+            <pre>cd ~/path/to/fiber-node
+FIBER_SECRET_KEY_PASSWORD='your-password' ./fnn -d . -c config.yml</pre>
+            <p class="docs-warn">&#x26A0; Key format: Fiber needs a raw 32-byte hex key (64 chars). If you exported with <code>ckb-cli --extended-privkey-path</code>, it writes two lines — use only the <strong>first line</strong>.</p>
+            <pre># Fix extended key (keep only first line):
+head -1 ckb/key > ckb/key.tmp && mv ckb/key.tmp ckb/key
+chmod 600 ckb/key</pre>
+          </div>
+
+          <div class="docs-section">
+            <h3>5. Run fiber-pilot</h3>
+            <pre>npm run build && npm run server</pre>
+            <p>Open <strong>http://localhost:3000</strong> — the status bar should show a green dot with your node's pubkey.</p>
+          </div>
+
+          <div class="docs-section">
+            <h3>Troubleshooting</h3>
+            <table class="docs-table">
+              <tr><td><code>401 invalid x-api-key</code></td><td>Key is the Claude Code OAuth token — create a new API key at console.anthropic.com</td></tr>
+              <tr><td><code>400 credit balance too low</code></td><td>Add credits at console.anthropic.com → Billing</td></tr>
+              <tr><td><code>Decryption failed: aead::Error</code></td><td>Key file has two lines (extended format) — keep only the first line</td></tr>
+              <tr><td><code>No such file or directory</code> for key</td><td>Missing <code>-d .</code> flag — Fiber defaults to <code>~/.fiber-node</code></td></tr>
+              <tr><td>Node disconnected in UI</td><td>Fiber RPC not reachable — check <code>FIBER_RPC_URL</code> and that <code>fnn</code> is running</td></tr>
+              <tr><td>RocksDB LOCK error</td><td>Stale lock from crash — delete <code>fiber/store/LOCK</code> and retry</td></tr>
+            </table>
+          </div>
+
+        </div>
+      </div>
+    </div>
 
     <main id="chat-messages" class="chat-messages">
       <div class="welcome-message">

@@ -290,6 +290,15 @@ function scrollToBottom() {
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
+function toggleDocs() {
+  const overlay = document.getElementById("docs-overlay");
+  overlay.classList.toggle("open");
+}
+
+function closeDocs(e) {
+  if (e.target === e.currentTarget) toggleDocs();
+}
+
 // Enter key to send
 chatInput.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && !e.shiftKey) {

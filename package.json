@@ -9,9 +9,9 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
-    "server": "node dist/server.js",
+    "server": "node --env-file=.env dist/server.js",
     "dev": "npx tsx src/index.ts",
-    "dev:server": "npx tsx src/server.ts",
+    "dev:server": "node --env-file=.env --import=tsx/esm src/server.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "inspect": "npx @modelcontextprotocol/inspector node dist/index.js"
