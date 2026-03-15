@@ -34,96 +34,86 @@
           <div class="docs-section">
             <h3>Prerequisites</h3>
             <ul>
-              <li>Node.js 20+ (for <code>--env-file</code> flag support)</li>
-              <li>A running CKB node pointed at testnet</li>
-              <li>Fiber Network node binary <code>fnn</code> v0.7.1+</li>
-              <li>An Anthropic API key with credits</li>
+              <li>Node.js 20+</li>
+              <li>Fiber Network node binary <code>fnn</code> v0.7.1+ — <a href="https://github.com/nervosnetwork/fiber/releases" target="_blank" style="color:var(--accent-blue)">releases</a></li>
+              <li>CKB testnet coins — <a href="https://faucet.nervos.org" target="_blank" style="color:var(--accent-blue)">faucet.nervos.org</a></li>
+              <li>Anthropic API key with credits (for the web UI)</li>
             </ul>
           </div>
 
           <div class="docs-section">
-            <h3>1. Clone &amp; Install</h3>
-            <pre>git clone https://github.com/RaheemJnr/fiber-pilot
-cd fiber-pilot
-npm install
-npm run build</pre>
-          </div>
-
-          <div class="docs-section">
-            <h3>2. Anthropic API Key</h3>
-            <p>You need a <strong>proper API key</strong>, not the Claude Code OAuth token.</p>
-            <ol>
-              <li>Go to <strong>console.anthropic.com → Settings → API Keys</strong></li>
-              <li>Click <strong>Create Key</strong> — the key starts with <code>sk-ant-api03-</code></li>
-              <li>Add billing credits at <strong>Settings → Billing</strong> (even $5 works for demos)</li>
-            </ol>
-            <p class="docs-warn">&#x26A0; The token Claude Code uses (<code>sk-ant-oat01-...</code>) is an OAuth token — it won't work here.</p>
-          </div>
-
-          <div class="docs-section">
-            <h3>3. Configure .env</h3>
-            <pre>ANTHROPIC_API_KEY=sk-ant-api03-YOUR_KEY_HERE
-FIBER_RPC_URL=http://127.0.0.1:8227
-PORT=3000</pre>
-            <p>This file is in <code>.gitignore</code> — your key stays local.</p>
-          </div>
-
-          <div class="docs-section">
-            <h3>4. Start the Fiber Node</h3>
-            <p>Always run from inside your fiber-node directory with <code>-d .</code> so Fiber uses the local key file (not <code>~/.fiber-node</code>):</p>
+            <h3>1. Start your Fiber Node</h3>
+            <p>Always run from inside your fiber-node directory with <code>-d .</code> so Fiber finds your local key file:</p>
             <pre>cd ~/path/to/fiber-node
 FIBER_SECRET_KEY_PASSWORD='your-password' ./fnn -d . -c config.yml</pre>
-            <p class="docs-warn">&#x26A0; Key format: Fiber needs a raw 32-byte hex key (64 chars). If you exported with <code>ckb-cli --extended-privkey-path</code>, it writes two lines — use only the <strong>first line</strong>.</p>
-            <pre># Fix extended key (keep only first line):
-head -1 ckb/key > ckb/key.tmp && mv ckb/key.tmp ckb/key
+            <p class="docs-warn">&#x26A0; Key format: Fiber needs a raw 32-byte hex key (64 chars, one line). If you exported with <code>ckb-cli --extended-privkey-path</code>, it writes two lines — keep only the first:</p>
+            <pre>head -1 ckb/key > ckb/key.tmp && mv ckb/key.tmp ckb/key
 chmod 600 ckb/key</pre>
           </div>
 
           <div class="docs-section">
-            <h3>5. Run fiber-pilot Web UI</h3>
-            <pre>npm run build && npm run server</pre>
-            <p>Open <strong>http://localhost:3000</strong>, enter your Fiber node RPC URL, and connect.</p>
+            <h3>2. Use the Web Chat (this page)</h3>
+            <p>The simplest way — enter your node's RPC URL below and start chatting.</p>
+            <p>To run your own instance:</p>
+            <pre>git clone https://github.com/RaheemJnr/fiber-pilot
+cd fiber-pilot && npm install && npm run build
+
+# Create .env
+echo "ANTHROPIC_API_KEY=sk-ant-api03-YOUR_KEY" > .env
+echo "PORT=3000" >> .env
+
+npm run server   # opens http://localhost:3000</pre>
+            <p class="docs-warn">&#x26A0; Get a proper API key at <strong>console.anthropic.com → Settings → API Keys</strong> (starts with <code>sk-ant-api03-</code>). The token Claude Code uses (<code>sk-ant-oat01-</code>) won't work.</p>
           </div>
 
           <div class="docs-section">
-            <h3>6. Use as MCP Server (Claude Code / Claude Desktop)</h3>
-            <p>fiber-pilot is a fully spec-compliant <strong>MCP server</strong> with two modes:</p>
-
-            <p><strong>Option A — Hosted (no install)</strong></p>
-            <p>The hosted server exposes a <code>/mcp</code> HTTP endpoint. Pass your Fiber node's public IP as a query param. Add to <code>.mcp.json</code>:</p>
+            <h3>3. Use as MCP Server — Hosted (no install)</h3>
+            <p>The hosted server exposes a <code>/mcp</code> HTTP endpoint. Claude Code connects directly — no cloning, no billing (uses your Claude subscription).</p>
+            <p>Add to your project's <code>.mcp.json</code>:</p>
             <pre>{
   "mcpServers": {
     "fiber-pilot": {
       "type": "http",
-      "url": "https://your-hosted-server/mcp?rpc=http://YOUR-FIBER-NODE-IP:8227"
+      "url": "https://HOSTED-SERVER/mcp?rpc=http://YOUR-FIBER-NODE-IP:8227"
     }
   }
 }</pre>
-            <p class="docs-warn">&#x26A0; Your Fiber node RPC must be reachable from the hosted server — use a public IP or port-forward. Do not expose it without a firewall if running on mainnet.</p>
+            <p class="docs-warn">&#x26A0; Your Fiber node's RPC port (8227) must be reachable from the hosted server. Use a VPS for your Fiber node, or port-forward your router. Do not expose without a firewall on mainnet.</p>
+          </div>
 
-            <p><strong>Option B — Local (cloned)</strong></p>
-            <p>Clone the repo, build, and point Claude Code at your local binary. No network required — your node stays fully private.</p>
+          <div class="docs-section">
+            <h3>4. Use as MCP Server — Local (fully private)</h3>
+            <p>Clone the repo and run the MCP server locally. Your node never leaves your machine and all tool calls use your Claude Code subscription.</p>
+            <pre>git clone https://github.com/RaheemJnr/fiber-pilot
+cd fiber-pilot && npm install && npm run build</pre>
+            <p>Add to your project's <code>.mcp.json</code>:</p>
             <pre>{
   "mcpServers": {
     "fiber-pilot": {
       "command": "node",
-      "args": ["/path/to/fiber-pilot/dist/index.js"],
-      "env": { "FIBER_RPC_URL": "http://127.0.0.1:8227" }
+      "args": ["/absolute/path/to/fiber-pilot/dist/index.js"],
+      "env": {
+        "FIBER_RPC_URL": "http://127.0.0.1:8227",
+        "FP_MAX_CHANNEL_OPEN": "10000",
+        "FP_APPROVAL_THRESHOLD": "1000"
+      }
     }
   }
 }</pre>
-            <p>In both modes, Claude Code calls all 17 tools autonomously using your subscription — no API billing needed.</p>
+            <p>Open Claude Code — fiber-pilot tools are available immediately. Try: <em>"Analyze my channels"</em> or <em>"Open a 200 CKB channel with the best connected peer."</em></p>
           </div>
 
           <div class="docs-section">
             <h3>Troubleshooting</h3>
             <table class="docs-table">
-              <tr><td><code>401 invalid x-api-key</code></td><td>Key is the Claude Code OAuth token — create a new API key at console.anthropic.com</td></tr>
+              <tr><td><code>401 invalid x-api-key</code></td><td>Using Claude Code OAuth token — create an API key at console.anthropic.com</td></tr>
               <tr><td><code>400 credit balance too low</code></td><td>Add credits at console.anthropic.com → Billing</td></tr>
+              <tr><td><code>503 No available accounts</code></td><td>Proxy quota exhausted — check your API key or switch proxies</td></tr>
               <tr><td><code>Decryption failed: aead::Error</code></td><td>Key file has two lines (extended format) — keep only the first line</td></tr>
               <tr><td><code>No such file or directory</code> for key</td><td>Missing <code>-d .</code> flag — Fiber defaults to <code>~/.fiber-node</code></td></tr>
-              <tr><td>Node disconnected in UI</td><td>Fiber RPC not reachable — check <code>FIBER_RPC_URL</code> and that <code>fnn</code> is running</td></tr>
-              <tr><td>RocksDB LOCK error</td><td>Stale lock from crash — delete <code>fiber/store/LOCK</code> and retry</td></tr>
+              <tr><td>Node disconnected in UI</td><td>Fiber RPC not reachable — verify <code>fnn</code> is running and the URL is correct</td></tr>
+              <tr><td>RocksDB LOCK error</td><td>Stale lock from crash — delete <code>fiber/store/LOCK</code> and restart</td></tr>
+              <tr><td>Resource temporarily unavailable</td><td><code>fnn</code> already running — <code>pkill -9 fnn</code> then restart</td></tr>
             </table>
           </div>
 
