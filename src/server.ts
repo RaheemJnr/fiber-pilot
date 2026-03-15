@@ -15,22 +15,16 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const PORT = Number(process.env.PORT || 3000);
-const FIBER_RPC_URL = process.env.FIBER_RPC_URL || "http://127.0.0.1:8227";
-const MODEL = process.env.CLAUDE_MODEL || "claude-sonnet-4-20250514";
+const MODEL = process.env.CLAUDE_MODEL || "claude-sonnet-4-5";
 
-const anthropic = new Anthropic();
-
-const rpc = new FiberRpcClient(FIBER_RPC_URL);
-const safety = new SafetyLayer({
-  maxChannelOpenAmount: Number(process.env.FP_MAX_CHANNEL_OPEN || 10000),
-  maxPaymentAmount: Number(process.env.FP_MAX_PAYMENT || 5000),
-  dailySpendingLimit: Number(process.env.FP_DAILY_LIMIT || 50000),
-  requireApprovalAbove: Number(process.env.FP_APPROVAL_THRESHOLD || 5000),
-  allowedPeers: process.env.FP_ALLOWED_PEERS ? process.env.FP_ALLOWED_PEERS.split(",") : [],
-  autoRebalanceEnabled: process.env.FP_AUTO_REBALANCE !== "false",
-  maxAutoRebalanceAmount: Number(process.env.FP_MAX_REBALANCE || 3000),
+const authToken = process.env.ANTHROPIC_AUTH_TOKEN || process.env.ANTHROPIC_API_KEY;
+const anthropic = new Anthropic({
+  apiKey: authToken,
+  baseURL: process.env.ANTHROPIC_BASE_URL,
+  defaultHeaders: process.env.ANTHROPIC_AUTH_TOKEN
+    ? { "Authorization": `Bearer ${process.env.ANTHROPIC_AUTH_TOKEN}` }
+    : undefined,
 });
-const audit = new AuditLog();
 
 const SYSTEM_PROMPT = `You are fiber-pilot, an AI assistant that manages a Fiber Network (CKB payment channels) node. You have access to 17 tools that let you inspect, analyze, and control the node.
 
@@ -50,6 +44,10 @@ interface Session {
   id: string;
   messages: Anthropic.MessageParam[];
   createdAt: number;
+  rpc: FiberRpcClient;
+  safety: SafetyLayer;
+  audit: AuditLog;
+  fiberRpcUrl: string;
 }
 
 const sessions = new Map<string, Session>();
@@ -58,19 +56,41 @@ const app = express();
 app.use(express.json());
 app.use(express.static(join(__dirname, "..", "public")));
 
-// Create a new session
-app.post("/api/session", (_req, res) => {
+// Create a new session — accepts fiberRpcUrl from the user
+app.post("/api/session", (req, res) => {
+  const fiberRpcUrl = req.body?.fiberRpcUrl || process.env.FIBER_RPC_URL || "http://127.0.0.1:8227";
+
+  const rpc = new FiberRpcClient(fiberRpcUrl);
+  const safety = new SafetyLayer({
+    maxChannelOpenAmount: Number(process.env.FP_MAX_CHANNEL_OPEN || 10000),
+    maxPaymentAmount: Number(process.env.FP_MAX_PAYMENT || 5000),
+    dailySpendingLimit: Number(process.env.FP_DAILY_LIMIT || 50000),
+    requireApprovalAbove: Number(process.env.FP_APPROVAL_THRESHOLD || 5000),
+    allowedPeers: process.env.FP_ALLOWED_PEERS ? process.env.FP_ALLOWED_PEERS.split(",") : [],
+    autoRebalanceEnabled: process.env.FP_AUTO_REBALANCE !== "false",
+    maxAutoRebalanceAmount: Number(process.env.FP_MAX_REBALANCE || 3000),
+  });
+  const audit = new AuditLog();
+
   const session: Session = {
     id: randomUUID(),
     messages: [],
     createdAt: Date.now(),
+    rpc,
+    safety,
+    audit,
+    fiberRpcUrl,
   };
   sessions.set(session.id, session);
   res.json({ sessionId: session.id });
 });
 
-// Node status (lightweight)
-app.get("/api/node-status", async (_req, res) => {
+// Node status — uses the session's own rpc client
+app.get("/api/node-status", async (req, res) => {
+  const sessionId = req.query.sessionId as string;
+  const session = sessions.get(sessionId);
+  const rpc = session?.rpc ?? new FiberRpcClient(process.env.FIBER_RPC_URL || "http://127.0.0.1:8227");
+
   try {
     const info = await rpc.call<Record<string, unknown>>("node_info", []);
     res.json({
@@ -122,29 +142,20 @@ app.post("/api/chat", async (req, res) => {
         messages: session.messages,
       });
 
-      // Collect content blocks as they stream
-      let currentToolId = "";
-      let currentToolName = "";
-
       stream.on("text", (text) => {
         sendEvent("text_delta", { text });
       });
 
       stream.on("contentBlock", (block) => {
         if (block.type === "tool_use") {
-          currentToolId = block.id;
-          currentToolName = block.name;
           sendEvent("tool_call_start", { id: block.id, name: block.name, input: block.input });
         }
       });
 
       const finalMessage = await stream.finalMessage();
-
-      // Add assistant response to history
       session.messages.push({ role: "assistant", content: finalMessage.content });
 
       if (finalMessage.stop_reason === "tool_use") {
-        // Execute tool calls and collect results
         const toolResults: Anthropic.ToolResultBlockParam[] = [];
 
         for (const block of finalMessage.content) {
@@ -153,9 +164,9 @@ app.post("/api/chat", async (req, res) => {
             const result = await executeTool(
               block.name,
               block.input as Record<string, unknown>,
-              rpc,
-              safety,
-              audit
+              session.rpc,
+              session.safety,
+              session.audit
             );
             const duration = Date.now() - startTime;
 
@@ -166,7 +177,6 @@ app.post("/api/chat", async (req, res) => {
               duration_ms: duration,
             });
 
-            // Check for approval_required
             if (
               result &&
               typeof result === "object" &&
@@ -188,7 +198,6 @@ app.post("/api/chat", async (req, res) => {
           }
         }
 
-        // Add tool results to history
         session.messages.push({ role: "user", content: toolResults });
       } else {
         continueLoop = false;
@@ -205,6 +214,5 @@ app.post("/api/chat", async (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`fiber-pilot web UI: http://localhost:${PORT}`);
-  console.log(`Fiber RPC: ${FIBER_RPC_URL}`);
   console.log(`Claude model: ${MODEL}`);
 });

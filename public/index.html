@@ -101,7 +101,38 @@ chmod 600 ckb/key</pre>
       </div>
     </div>
 
-    <main id="chat-messages" class="chat-messages">
+    <!-- Connect Screen -->
+    <div id="connect-screen" class="connect-screen">
+      <div class="connect-card">
+        <div class="connect-logo">
+          <span>&#x26A1;</span>
+          <span>fiber-pilot</span>
+        </div>
+        <p class="connect-tagline">AI-powered autonomous agent for your Fiber Network node</p>
+        <form id="connect-form" onsubmit="handleConnect(event)">
+          <label for="rpc-url-input">Fiber Node RPC URL</label>
+          <input
+            type="text"
+            id="rpc-url-input"
+            placeholder="http://your-server-ip:8227"
+            value="http://127.0.0.1:8227"
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <p class="connect-hint">This is the JSON-RPC port of your running <code>fnn</code> node (default: 8227). The agent will connect to your node autonomously.</p>
+          <button type="submit" id="connect-btn">Connect Node</button>
+          <p id="connect-error" class="connect-error" style="display:none"></p>
+        </form>
+        <div class="connect-features">
+          <div class="connect-feature">&#x1F4CA; Channel analytics</div>
+          <div class="connect-feature">&#x1F4B8; Send &amp; receive payments</div>
+          <div class="connect-feature">&#x2699;&#xFE0F; Autonomous fee optimization</div>
+          <div class="connect-feature">&#x1F6E1;&#xFE0F; Safety guardrails</div>
+        </div>
+      </div>
+    </div>
+
+    <main id="chat-messages" class="chat-messages" style="display:none">
       <div class="welcome-message">
         <h2>&#x26A1; Welcome to fiber-pilot</h2>
         <p>Your Fiber node on autopilot. Ask me anything about your node, channels, or payments.</p>
@@ -114,7 +145,7 @@ chmod 600 ckb/key</pre>
       </div>
     </main>
 
-    <footer class="chat-input-area">
+    <footer class="chat-input-area" id="chat-footer" style="display:none">
       <form id="chat-form" onsubmit="handleSubmit(event)">
         <input type="text" id="chat-input" placeholder="Ask about your Fiber node..." autocomplete="off" autofocus>
         <button type="submit" id="send-btn">

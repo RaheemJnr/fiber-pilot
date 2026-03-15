@@ -8,34 +8,70 @@ const chatInput = document.getElementById("chat-input");
 const sendBtn = document.getElementById("send-btn");
 const statusDot = document.getElementById("status-dot");
 const nodeInfoEl = document.getElementById("node-info");
+const connectScreen = document.getElementById("connect-screen");
+const chatFooter = document.getElementById("chat-footer");
 
-// Initialize session on load
-async function init() {
+// Handle connect form submit
+async function handleConnect(e) {
+  e.preventDefault();
+  const rpcUrl = document.getElementById("rpc-url-input").value.trim();
+  const btn = document.getElementById("connect-btn");
+  const errEl = document.getElementById("connect-error");
+
+  btn.textContent = "Connecting...";
+  btn.disabled = true;
+  errEl.style.display = "none";
+
   try {
-    const res = await fetch("/api/session", { method: "POST" });
+    const res = await fetch("/api/session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ fiberRpcUrl: rpcUrl }),
+    });
     const data = await res.json();
     state.sessionId = data.sessionId;
-  } catch {
-    console.error("Failed to create session");
+
+    // Verify node is reachable
+    const status = await fetch(`/api/node-status?sessionId=${state.sessionId}`);
+    const statusData = await status.json();
+
+    if (!statusData.connected) {
+      throw new Error("Could not reach your Fiber node at " + rpcUrl + ". Make sure fnn is running.");
+    }
+
+    // Show chat UI
+    connectScreen.style.display = "none";
+    chatMessages.style.display = "";
+    chatFooter.style.display = "";
+    updateNodeStatus(statusData);
+    setInterval(fetchNodeStatus, 30000);
+
+  } catch (err) {
+    errEl.textContent = err.message;
+    errEl.style.display = "block";
+    btn.textContent = "Connect Node";
+    btn.disabled = false;
   }
-  fetchNodeStatus();
-  setInterval(fetchNodeStatus, 30000);
+}
+
+function updateNodeStatus(data) {
+  if (data.connected) {
+    statusDot.className = "status-dot connected";
+    const pk = data.publicKey
+      ? data.publicKey.slice(0, 8) + "..." + data.publicKey.slice(-6)
+      : "unknown";
+    nodeInfoEl.textContent = `${pk} | ${data.channelCount} ch | ${data.peerCount} peers | v${data.version}`;
+  } else {
+    statusDot.className = "status-dot disconnected";
+    nodeInfoEl.textContent = "Node disconnected";
+  }
 }
 
 async function fetchNodeStatus() {
   try {
-    const res = await fetch("/api/node-status");
+    const res = await fetch(`/api/node-status?sessionId=${state.sessionId}`);
     const data = await res.json();
-    if (data.connected) {
-      statusDot.className = "status-dot connected";
-      const pk = data.publicKey
-        ? data.publicKey.slice(0, 8) + "..." + data.publicKey.slice(-6)
-        : "unknown";
-      nodeInfoEl.textContent = `${pk} | ${data.channelCount} ch | ${data.peerCount} peers | v${data.version}`;
-    } else {
-      statusDot.className = "status-dot disconnected";
-      nodeInfoEl.textContent = "Node disconnected";
-    }
+    updateNodeStatus(data);
   } catch {
     statusDot.className = "status-dot disconnected";
     nodeInfoEl.textContent = "Node disconnected";
@@ -307,4 +343,5 @@ chatInput.addEventListener("keydown", (e) => {
   }
 });
 
-init();
+// Focus the RPC URL input on load
+document.getElementById("rpc-url-input")?.focus();

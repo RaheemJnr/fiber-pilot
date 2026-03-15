@@ -424,6 +424,131 @@ header {
   border-radius: 2px;
 }
 
+/* Connect Screen */
+.connect-screen {
+  position: fixed;
+  inset: 0;
+  background: var(--bg-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 200;
+}
+
+.connect-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 40px;
+  width: 100%;
+  max-width: 460px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.connect-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--accent-blue);
+}
+
+.connect-logo span:first-child {
+  font-size: 28px;
+}
+
+.connect-tagline {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+#connect-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#connect-form label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+#connect-form input {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+#connect-form input:focus {
+  border-color: var(--accent-blue);
+}
+
+.connect-hint {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.connect-hint code {
+  color: var(--accent-blue);
+  background: var(--bg-primary);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+#connect-btn {
+  background: var(--accent-blue);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 13px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  margin-top: 4px;
+}
+
+#connect-btn:hover { opacity: 0.85; }
+#connect-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.connect-error {
+  font-size: 12px;
+  color: var(--accent-red);
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 6px;
+  padding: 8px 12px;
+}
+
+.connect-features {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding-top: 4px;
+  border-top: 1px solid var(--border);
+}
+
+.connect-feature {
+  font-size: 12px;
+  color: var(--text-secondary);
+  padding: 6px 0;
+}
+
 /* Docs Button */
 .docs-btn {
   padding: 6px 12px;
