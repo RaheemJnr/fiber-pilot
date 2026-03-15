@@ -87,21 +87,32 @@ chmod 600 ckb/key</pre>
 
           <div class="docs-section">
             <h3>6. Use as MCP Server (Claude Code / Claude Desktop)</h3>
-            <p>fiber-pilot is also a fully spec-compliant <strong>MCP server</strong> — no web server or hosting needed. Claude Code spawns it as a local process and calls all 17 tools directly.</p>
-            <p>Add this to your project's <code>.mcp.json</code>:</p>
+            <p>fiber-pilot is a fully spec-compliant <strong>MCP server</strong> with two modes:</p>
+
+            <p><strong>Option A — Hosted (no install)</strong></p>
+            <p>The hosted server exposes a <code>/mcp</code> HTTP endpoint. Pass your Fiber node's public IP as a query param. Add to <code>.mcp.json</code>:</p>
+            <pre>{
+  "mcpServers": {
+    "fiber-pilot": {
+      "type": "http",
+      "url": "https://your-hosted-server/mcp?rpc=http://YOUR-FIBER-NODE-IP:8227"
+    }
+  }
+}</pre>
+            <p class="docs-warn">&#x26A0; Your Fiber node RPC must be reachable from the hosted server — use a public IP or port-forward. Do not expose it without a firewall if running on mainnet.</p>
+
+            <p><strong>Option B — Local (cloned)</strong></p>
+            <p>Clone the repo, build, and point Claude Code at your local binary. No network required — your node stays fully private.</p>
             <pre>{
   "mcpServers": {
     "fiber-pilot": {
       "command": "node",
-      "args": ["/absolute/path/to/fiber-pilot/dist/index.js"],
-      "env": {
-        "FIBER_RPC_URL": "http://127.0.0.1:8227"
-      }
+      "args": ["/path/to/fiber-pilot/dist/index.js"],
+      "env": { "FIBER_RPC_URL": "http://127.0.0.1:8227" }
     }
   }
 }</pre>
-            <p>Then in Claude Code you can say <em>"Open a 500 CKB channel with bootnodehk"</em> or <em>"Analyze my channels"</em> and Claude will call the tools autonomously — using your Claude Code subscription, no API billing needed.</p>
-            <p class="docs-warn">&#x26A0; The MCP server communicates over stdio (stdin/stdout). It has no HTTP port — Claude Code manages the process lifecycle automatically.</p>
+            <p>In both modes, Claude Code calls all 17 tools autonomously using your subscription — no API billing needed.</p>
           </div>
 
           <div class="docs-section">

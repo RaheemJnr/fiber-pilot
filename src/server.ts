@@ -5,11 +5,18 @@ import { randomUUID } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import Anthropic from "@anthropic-ai/sdk";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { FiberRpcClient } from "./fiber-rpc.js";
 import { SafetyLayer } from "./safety.js";
 import { AuditLog } from "./audit.js";
 import { TOOL_DEFINITIONS } from "./tool-definitions.js";
 import { executeTool } from "./tool-executor.js";
+import { registerChannelTools } from "./tools/channels.js";
+import { registerPaymentTools } from "./tools/payments.js";
+import { registerNetworkTools } from "./tools/network.js";
+import { registerAnalysisTools } from "./tools/analysis.js";
+import { registerSafetyTools } from "./tools/safety-tools.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -212,7 +219,60 @@ app.post("/api/chat", async (req, res) => {
   res.end();
 });
 
+// ---------- Hosted HTTP MCP endpoint ----------
+// Users add to their Claude Code .mcp.json:
+// { "type": "http", "url": "https://your-host/mcp?rpc=http://your-fiber-node-ip:8227" }
+
+function createMcpServer(fiberRpcUrl: string) {
+  const rpc = new FiberRpcClient(fiberRpcUrl);
+  const safety = new SafetyLayer({
+    maxChannelOpenAmount: Number(process.env.FP_MAX_CHANNEL_OPEN || 10000),
+    maxPaymentAmount: Number(process.env.FP_MAX_PAYMENT || 5000),
+    dailySpendingLimit: Number(process.env.FP_DAILY_LIMIT || 50000),
+    requireApprovalAbove: Number(process.env.FP_APPROVAL_THRESHOLD || 5000),
+    allowedPeers: [],
+    autoRebalanceEnabled: true,
+    maxAutoRebalanceAmount: Number(process.env.FP_MAX_REBALANCE || 3000),
+  });
+  const audit = new AuditLog();
+  const server = new McpServer({ name: "fiber-pilot", version: "0.1.0" });
+  registerChannelTools(server, rpc, safety, audit);
+  registerPaymentTools(server, rpc, safety, audit);
+  registerNetworkTools(server, rpc, audit);
+  registerAnalysisTools(server, rpc, audit);
+  registerSafetyTools(server, safety, audit);
+  return server;
+}
+
+// Per-session MCP transport store (for resumable sessions)
+const mcpSessions = new Map<string, StreamableHTTPServerTransport>();
+
+app.all("/mcp", async (req, res) => {
+  const fiberRpcUrl = (req.query.rpc as string) || "http://127.0.0.1:8227";
+
+  // Reuse existing session if client sends mcp-session-id header
+  const existingSessionId = req.headers["mcp-session-id"] as string | undefined;
+  let transport = existingSessionId ? mcpSessions.get(existingSessionId) : undefined;
+
+  if (!transport) {
+    transport = new StreamableHTTPServerTransport({
+      sessionIdGenerator: () => randomUUID(),
+      onsessioninitialized: (sessionId) => {
+        mcpSessions.set(sessionId, transport!);
+      },
+    });
+    transport.onclose = () => {
+      if (transport!.sessionId) mcpSessions.delete(transport!.sessionId);
+    };
+    const mcpServer = createMcpServer(fiberRpcUrl);
+    await mcpServer.connect(transport);
+  }
+
+  await transport.handleRequest(req, res, req.body);
+});
+
 app.listen(PORT, () => {
-  console.log(`fiber-pilot web UI: http://localhost:${PORT}`);
+  console.log(`fiber-pilot web UI:  http://localhost:${PORT}`);
+  console.log(`fiber-pilot MCP URL: http://localhost:${PORT}/mcp?rpc=http://YOUR-FIBER-IP:8227`);
   console.log(`Claude model: ${MODEL}`);
 });
