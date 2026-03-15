@@ -80,9 +80,28 @@ chmod 600 ckb/key</pre>
           </div>
 
           <div class="docs-section">
-            <h3>5. Run fiber-pilot</h3>
+            <h3>5. Run fiber-pilot Web UI</h3>
             <pre>npm run build && npm run server</pre>
-            <p>Open <strong>http://localhost:3000</strong> — the status bar should show a green dot with your node's pubkey.</p>
+            <p>Open <strong>http://localhost:3000</strong>, enter your Fiber node RPC URL, and connect.</p>
+          </div>
+
+          <div class="docs-section">
+            <h3>6. Use as MCP Server (Claude Code / Claude Desktop)</h3>
+            <p>fiber-pilot is also a fully spec-compliant <strong>MCP server</strong> — no web server or hosting needed. Claude Code spawns it as a local process and calls all 17 tools directly.</p>
+            <p>Add this to your project's <code>.mcp.json</code>:</p>
+            <pre>{
+  "mcpServers": {
+    "fiber-pilot": {
+      "command": "node",
+      "args": ["/absolute/path/to/fiber-pilot/dist/index.js"],
+      "env": {
+        "FIBER_RPC_URL": "http://127.0.0.1:8227"
+      }
+    }
+  }
+}</pre>
+            <p>Then in Claude Code you can say <em>"Open a 500 CKB channel with bootnodehk"</em> or <em>"Analyze my channels"</em> and Claude will call the tools autonomously — using your Claude Code subscription, no API billing needed.</p>
+            <p class="docs-warn">&#x26A0; The MCP server communicates over stdio (stdin/stdout). It has no HTTP port — Claude Code manages the process lifecycle automatically.</p>
           </div>
 
           <div class="docs-section">
