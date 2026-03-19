@@ -69,16 +69,18 @@ npm run server   # opens http://localhost:3000</pre>
           <div class="docs-section">
             <h3>3. Use as MCP Server — Hosted (no install)</h3>
             <p>The hosted server exposes a <code>/mcp</code> HTTP endpoint. Claude Code connects directly — no cloning, no billing (uses your Claude subscription).</p>
+            <p><strong>Live hosted instance:</strong> <code>https://fiber-pilot.up.railway.app</code></p>
             <p>Add to your project's <code>.mcp.json</code>:</p>
             <pre>{
   "mcpServers": {
     "fiber-pilot": {
       "type": "http",
-      "url": "https://HOSTED-SERVER/mcp?rpc=http://YOUR-FIBER-NODE-IP:8227"
+      "url": "https://fiber-pilot.up.railway.app/mcp?rpc=http://YOUR-FIBER-NODE-IP:8227"
     }
   }
 }</pre>
-            <p class="docs-warn">&#x26A0; Your Fiber node's RPC port (8227) must be reachable from the hosted server. Use a VPS for your Fiber node, or port-forward your router. Do not expose without a firewall on mainnet.</p>
+            <p><strong>What is <code>YOUR-FIBER-NODE-IP</code>?</strong> This is the public IP address of <em>your</em> Fiber node — the machine where <code>fnn</code> is running. Each user brings their own node. Replace this placeholder with your node's IP, e.g. <code>http://45.32.100.55:8227</code>. The hosted fiber-pilot agent then connects to your node remotely.</p>
+            <p class="docs-warn">&#x26A0; Your Fiber node's RPC port (8227) must be publicly reachable from the hosted server. Run your Fiber node on a VPS with the port open, or port-forward your home router. Do not expose without a firewall on mainnet.</p>
           </div>
 
           <div class="docs-section">

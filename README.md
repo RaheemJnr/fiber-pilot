@@ -104,7 +104,7 @@ PORT=3000
 npm run server
 ```
 
-Open **http://localhost:3000**, enter your Fiber node RPC URL (default `http://127.0.0.1:8227`), and click **Connect Node**.
+Open **http://localhost:3000** (or the hosted version at **https://fiber-pilot.up.railway.app**), enter your Fiber node RPC URL (default `http://127.0.0.1:8227`), and click **Connect Node**.
 
 The status bar shows your node's pubkey, channel count, and peer count in real time.
 
@@ -118,6 +118,8 @@ fiber-pilot is a fully spec-compliant MCP server. Claude Code spawns it and call
 
 The hosted server exposes a `/mcp` HTTP endpoint. Users pass their Fiber node's **public** RPC URL as a query parameter.
 
+**Live hosted instance:** `https://fiber-pilot.up.railway.app`
+
 Add to your `.mcp.json` or Claude Desktop config:
 
 ```json
@@ -125,13 +127,15 @@ Add to your `.mcp.json` or Claude Desktop config:
   "mcpServers": {
     "fiber-pilot": {
       "type": "http",
-      "url": "https://your-hosted-server.com/mcp?rpc=http://YOUR-FIBER-NODE-IP:8227"
+      "url": "https://fiber-pilot.up.railway.app/mcp?rpc=http://YOUR-FIBER-NODE-IP:8227"
     }
   }
 }
 ```
 
-> **Note:** Your Fiber node's RPC port must be reachable from the hosted server (public IP or port-forwarded). Do not expose it without a firewall on mainnet.
+> **What is `YOUR-FIBER-NODE-IP`?** This is the public IP of *your* Fiber node — the machine where `fnn` is running. Each user brings their own node. Replace this placeholder with your node's IP (e.g. `45.32.100.55`). The hosted fiber-pilot agent connects to your node remotely.
+>
+> Your Fiber node's RPC port (8227) must be publicly reachable from the hosted server. Run your Fiber node on a VPS with the port open, or port-forward your router. Do not expose without a firewall on mainnet.
 
 ### Option B — Local stdio MCP (fully private)
 
@@ -194,6 +198,8 @@ sudo ufw allow 3000
 
 Your hosted URL: `http://your-server-ip:3000`
 Hosted MCP URL: `http://your-server-ip:3000/mcp?rpc=http://USER-FIBER-IP:8227`
+
+> **Live instance:** `https://fiber-pilot.up.railway.app` — hosted on Railway.
 
 ---
 
