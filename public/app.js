@@ -343,5 +343,14 @@ chatInput.addEventListener("keydown", (e) => {
   }
 });
 
-// Focus the RPC URL input on load
-document.getElementById("rpc-url-input")?.focus();
+// On load: check for a server-configured default RPC and pre-fill
+(async () => {
+  try {
+    const res = await fetch("/api/default-rpc");
+    const { defaultRpc } = await res.json();
+    if (defaultRpc) {
+      document.getElementById("rpc-url-input").value = defaultRpc;
+    }
+  } catch {}
+  document.getElementById("rpc-url-input")?.focus();
+})();

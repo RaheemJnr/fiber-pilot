@@ -63,6 +63,12 @@ const app = express();
 app.use(express.json());
 app.use(express.static(join(__dirname, "..", "public")));
 
+// Return default RPC URL if configured (allows hosted demo without user setup)
+app.get("/api/default-rpc", (_req, res) => {
+  const defaultRpc = process.env.DEFAULT_FIBER_RPC_URL;
+  res.json({ defaultRpc: defaultRpc || null });
+});
+
 // Create a new session — accepts fiberRpcUrl from the user
 app.post("/api/session", (req, res) => {
   const fiberRpcUrl = req.body?.fiberRpcUrl || process.env.FIBER_RPC_URL || "http://127.0.0.1:8227";

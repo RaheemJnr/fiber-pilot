@@ -69,13 +69,13 @@ npm run server   # opens http://localhost:3000</pre>
           <div class="docs-section">
             <h3>3. Use as MCP Server — Hosted (no install)</h3>
             <p>The hosted server exposes a <code>/mcp</code> HTTP endpoint. Claude Code connects directly — no cloning, no billing (uses your Claude subscription).</p>
-            <p><strong>Live hosted instance:</strong> <code>https://fiber-pilot.up.railway.app</code></p>
+            <p><strong>Live hosted instance:</strong> <code>https://fiber-pilot-production.up.railway.app</code></p>
             <p>Add to your project's <code>.mcp.json</code>:</p>
             <pre>{
   "mcpServers": {
     "fiber-pilot": {
       "type": "http",
-      "url": "https://fiber-pilot.up.railway.app/mcp?rpc=http://YOUR-FIBER-NODE-IP:8227"
+      "url": "https://fiber-pilot-production.up.railway.app/mcp?rpc=http://YOUR-FIBER-NODE-IP:8227"
     }
   }
 }</pre>

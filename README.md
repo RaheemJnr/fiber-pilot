@@ -104,7 +104,7 @@ PORT=3000
 npm run server
 ```
 
-Open **http://localhost:3000** (or the hosted version at **https://fiber-pilot.up.railway.app**), enter your Fiber node RPC URL (default `http://127.0.0.1:8227`), and click **Connect Node**.
+Open **http://localhost:3000** (or the hosted version at **https://fiber-pilot-production.up.railway.app**), enter your Fiber node RPC URL (default `http://127.0.0.1:8227`), and click **Connect Node**.
 
 The status bar shows your node's pubkey, channel count, and peer count in real time.
 
@@ -118,7 +118,7 @@ fiber-pilot is a fully spec-compliant MCP server. Claude Code spawns it and call
 
 The hosted server exposes a `/mcp` HTTP endpoint. Users pass their Fiber node's **public** RPC URL as a query parameter.
 
-**Live hosted instance:** `https://fiber-pilot.up.railway.app`
+**Live hosted instance:** `https://fiber-pilot-production.up.railway.app`
 
 Add to your `.mcp.json` or Claude Desktop config:
 
@@ -127,7 +127,7 @@ Add to your `.mcp.json` or Claude Desktop config:
   "mcpServers": {
     "fiber-pilot": {
       "type": "http",
-      "url": "https://fiber-pilot.up.railway.app/mcp?rpc=http://YOUR-FIBER-NODE-IP:8227"
+      "url": "https://fiber-pilot-production.up.railway.app/mcp?rpc=http://YOUR-FIBER-NODE-IP:8227"
     }
   }
 }
@@ -199,7 +199,7 @@ sudo ufw allow 3000
 Your hosted URL: `http://your-server-ip:3000`
 Hosted MCP URL: `http://your-server-ip:3000/mcp?rpc=http://USER-FIBER-IP:8227`
 
-> **Live instance:** `https://fiber-pilot.up.railway.app` — hosted on Railway.
+> **Live instance:** `https://fiber-pilot-production.up.railway.app` — hosted on Railway.
 
 ---
 
