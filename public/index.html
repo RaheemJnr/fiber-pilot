@@ -137,14 +137,47 @@ cd fiber-pilot && npm install && npm run build</pre>
             type="text"
             id="rpc-url-input"
             placeholder="http://your-server-ip:8227"
-            value="http://127.0.0.1:8227"
+            value=""
             autocomplete="off"
             spellcheck="false"
           />
-          <p class="connect-hint">This is the JSON-RPC port of your running <code>fnn</code> node (default: 8227). The agent will connect to your node autonomously.</p>
+          <p class="connect-hint">Enter the public URL of your running Fiber node's RPC endpoint (port 8227).</p>
           <button type="submit" id="connect-btn">Connect Node</button>
           <p id="connect-error" class="connect-error" style="display:none"></p>
         </form>
+
+        <div class="connect-setup">
+          <h4>How to connect your node</h4>
+          <p>fiber-pilot connects to <strong>your own</strong> Fiber Network node. Fiber RPC gives full wallet control, so there is no shared public RPC &mdash; each user brings their own node.</p>
+
+          <div class="connect-steps">
+            <div class="connect-step">
+              <span class="step-num">1</span>
+              <div>
+                <strong>Run a Fiber node</strong>
+                <p>Download <a href="https://github.com/nervosnetwork/fiber/releases" target="_blank" style="color:var(--accent-blue)">fnn v0.7.1+</a>, configure for CKB testnet, and start it:</p>
+                <pre>FIBER_SECRET_KEY_PASSWORD='pw' ./fnn -d . -c config.yml</pre>
+              </div>
+            </div>
+            <div class="connect-step">
+              <span class="step-num">2</span>
+              <div>
+                <strong>Expose RPC publicly</strong>
+                <p>Fiber binds RPC to localhost only. Use <a href="https://ngrok.com" target="_blank" style="color:var(--accent-blue)">ngrok</a> to create a public tunnel:</p>
+                <pre>ngrok tcp 8227</pre>
+                <p>Copy the forwarding URL (e.g. <code>tcp://0.tcp.ngrok.io:12345</code>) and paste it above as <code>http://0.tcp.ngrok.io:12345</code></p>
+              </div>
+            </div>
+            <div class="connect-step">
+              <span class="step-num">3</span>
+              <div>
+                <strong>Or run locally</strong>
+                <p>If your Fiber node is on this machine, <a href="https://github.com/RaheemJnr/fiber-pilot#usage-web-chat-interface" target="_blank" style="color:var(--accent-blue)">run fiber-pilot locally</a> instead and use <code>http://127.0.0.1:8227</code>.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="connect-features">
           <div class="connect-feature">&#x1F4CA; Channel analytics</div>
           <div class="connect-feature">&#x1F4B8; Send &amp; receive payments</div>
